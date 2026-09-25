@@ -37,4 +37,5 @@ node_modules/
 # Build va log
 dist/
 build/
+/CoconutAutoLaunch.exe
 *.log

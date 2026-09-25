@@ -18,15 +18,15 @@ py -3 -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt
 cd frontend
 npm install
-npm run build
 cd ..
+build.bat
 ```
+
+`build.bat` build giao diện React rồi dùng PyInstaller đóng gói tất cả thành một file `CoconutAutoLaunch.exe` ở thư mục gốc. File exe là sản phẩm build nên không đưa lên git. Sửa code xong thì chạy lại `build.bat`, nhưng phải tắt app đang mở trước.
 
 ## Chạy
 
-```powershell
-.venv\Scripts\pythonw.exe app.py
-```
+Bấm đúp `CoconutAutoLaunch.exe`. Khi đang phát triển thì có thể chạy thẳng từ mã nguồn: `.venv\Scripts\pythonw.exe app.py` (cần chạy `npm run build` trong `frontend` trước).
 
 Trong cửa sổ:
 
@@ -34,9 +34,9 @@ Trong cửa sổ:
 - **Độ trễ (giây)**: thời gian chờ kể từ lúc đăng nhập rồi mới mở app đó. App mở theo độ trễ tăng dần, cùng độ trễ thì theo thứ tự trong danh sách.
 - **Khởi động cùng Windows**: ghi hoặc gỡ entry `CoconutAutoLaunch` trong `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. Không cần quyền admin.
 
-Mọi thay đổi được lưu ngay vào `config.json` cạnh `app.py`. File này là dữ liệu cá nhân nên đã nằm trong `.gitignore`. Lúc đăng nhập, Windows chạy `pythonw.exe app.py --startup`: chỉ phần lõi chạy, không mở cửa sổ. Kết quả mở từng app được ghi vào `coconut-auto-launch.log`.
+Mọi thay đổi được lưu ngay vào `config.json` cạnh file exe (hoặc cạnh `app.py` khi chạy từ mã nguồn). File này là dữ liệu cá nhân nên đã nằm trong `.gitignore`. Lúc đăng nhập, Windows chạy `CoconutAutoLaunch.exe --startup`: chỉ phần lõi chạy, không mở cửa sổ. Kết quả mở từng app được ghi vào `coconut-auto-launch.log`, cùng thư mục với `config.json`.
 
-Đổi chỗ thư mục dự án hoặc tạo lại `.venv` thì entry khởi động cũ sẽ trỏ sai. Mở app lên, công tắc sẽ hiện Tắt, bật lại là xong.
+Bật khởi động từ bản exe và từ mã nguồn sẽ ghi hai lệnh khác nhau vào Run. Đổi chỗ file exe, đổi thư mục dự án hoặc chuyển giữa hai cách chạy thì công tắc sẽ hiện Tắt. Bật lại là entry được ghi đúng lệnh mới.
 
 ## Cấu trúc
 
@@ -46,6 +46,7 @@ Mọi thay đổi được lưu ngay vào `config.json` cạnh `app.py`. File n�
 | `core.py` | Lõi: đọc/ghi `config.json`, mở app, đăng ký khởi động (mọi thao tác registry nằm ở đây) |
 | `ui.py` | Cửa sổ pywebview và các hàm giao diện React gọi sang |
 | `frontend/` | Giao diện React + Vite, build ra `frontend/dist/` |
+| `build.bat` | Build giao diện và đóng gói `CoconutAutoLaunch.exe` |
 | `test_core.py` | Test cho lõi: `.venv\Scripts\python -m unittest test_core` |
 
 ## Làm việc với Claude Code

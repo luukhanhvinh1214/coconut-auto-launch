@@ -1,11 +1,13 @@
 import logging
+import sys
 from pathlib import Path
 
 import webview
 
 import core
 
-INDEX_HTML = core.ROOT / "frontend" / "dist" / "index.html"
+# Bản exe mang theo frontend/dist trong thư mục giải nén _MEIPASS.
+INDEX_HTML = Path(getattr(sys, "_MEIPASS", core.ROOT)) / "frontend" / "dist" / "index.html"
 
 log = logging.getLogger("coconut.ui")
 

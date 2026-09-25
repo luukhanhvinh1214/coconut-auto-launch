@@ -6,7 +6,9 @@ import time
 import winreg
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+FROZEN = getattr(sys, "frozen", False)
+# Bản exe onefile chạy từ thư mục tạm, dữ liệu người dùng phải nằm cạnh file exe.
+ROOT = Path(sys.executable).resolve().parent if FROZEN else Path(__file__).resolve().parent
 CONFIG_PATH = ROOT / "config.json"
 LOG_PATH = ROOT / "coconut-auto-launch.log"
 
@@ -83,8 +85,11 @@ def launch_all(apps: list[dict]) -> None:
 
 
 def startup_command() -> str:
-    pythonw = Path(sys.executable).with_name("pythonw.exe")
-    command = f'"{pythonw}" "{ROOT / "app.py"}" --startup'
+    if FROZEN:
+        command = f'"{Path(sys.executable).resolve()}" --startup'
+    else:
+        pythonw = Path(sys.executable).with_name("pythonw.exe")
+        command = f'"{pythonw}" "{ROOT / "app.py"}" --startup'
     if len(command) > 260:
         raise ValueError(f"startup command longer than 260 characters: {command}")
     return command
