@@ -4,10 +4,13 @@ from pathlib import Path
 
 import webview
 
+import catalog
 import core
 
 # Bản exe mang theo frontend/dist trong thư mục giải nén _MEIPASS.
 INDEX_HTML = Path(getattr(sys, "_MEIPASS", core.ROOT)) / "frontend" / "dist" / "index.html"
+# Bản exe không có file này, pywebview tự lấy icon của exe.
+ICON = core.ROOT / "logo.ico"
 
 log = logging.getLogger("coconut.ui")
 
@@ -22,6 +25,9 @@ class Api:
     def save_apps(self, apps: list[dict]) -> None:
         core.save_apps(apps)
 
+    def list_apps(self) -> list[dict]:
+        return catalog.list_apps()
+
     def pick_app(self) -> dict | None:
         paths = self._window.create_file_dialog(
             webview.FileDialog.OPEN,
@@ -30,7 +36,7 @@ class Api:
         if not paths:
             return None
         path = Path(paths[0])
-        return {"name": path.stem, "path": str(path), "delay": 0}
+        return {"name": path.stem, "path": str(path), "args": "", "detail": ""}
 
     def set_startup(self, enabled: bool) -> bool:
         if enabled:
@@ -54,4 +60,4 @@ def run() -> None:
         min_size=(640, 440),
         background_color="#E6F3FA",
     )
-    webview.start()
+    webview.start(icon=str(ICON))

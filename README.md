@@ -30,11 +30,13 @@ Bấm đúp `CoconutAutoLaunch.exe`. Khi đang phát triển thì có thể ch�
 
 Trong cửa sổ:
 
-- **Thêm ứng dụng**: chọn file `.exe` hoặc shortcut `.lnk`.
-- **Độ trễ (giây)**: thời gian chờ kể từ lúc đăng nhập rồi mới mở app đó. App mở theo độ trễ tăng dần, cùng độ trễ thì theo thứ tự trong danh sách.
+- **Thêm ứng dụng**: mở danh sách app giống menu Start. Danh sách gồm shortcut trong Start Menu, app cài từ Microsoft Store, và từng hồ sơ Chrome (kèm email để phân biệt hồ sơ trùng tên). Gõ để tìm (không cần dấu, ví dụ `khanh` tìm ra `Khánh`), Enter chọn kết quả đầu tiên. App không có trong Start Menu thì bấm **Chọn tệp khác** để chọn file `.exe` hoặc `.lnk`.
+- **FullScreen**: mở app ở dạng phóng to cửa sổ. Nhiều app như Chrome, Discord, app Electron bỏ qua yêu cầu phóng to của Windows, nên sau khi mở, Coconut chờ tối đa 60 giây để thấy cửa sổ chính của app đó (kể cả khi app mở qua launcher như `Update.exe`) rồi tự phóng to. Các hồ sơ Chrome dùng chung một tiến trình, nên khi vài hồ sơ mở cùng lúc mà chỉ một số được tích FullScreen thì có thể phóng to nhầm cửa sổ hồ sơ khác. App Store thường không phóng to được.
 - **Khởi động cùng Windows**: ghi hoặc gỡ entry `CoconutAutoLaunch` trong `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. Không cần quyền admin.
 
-Mọi thay đổi được lưu ngay vào `config.json` cạnh file exe (hoặc cạnh `app.py` khi chạy từ mã nguồn). File này là dữ liệu cá nhân nên đã nằm trong `.gitignore`. Lúc đăng nhập, Windows chạy `CoconutAutoLaunch.exe --startup`: chỉ phần lõi chạy, không mở cửa sổ. Kết quả mở từng app được ghi vào `coconut-auto-launch.log`, cùng thư mục với `config.json`.
+App mở lần lượt theo thứ tự trong danh sách, ngay khi đăng nhập.
+
+Mọi thay đổi được lưu ngay vào `config.json` cạnh file exe (hoặc cạnh `app.py` khi chạy từ mã nguồn), dạng `{"apps": [{"name", "path", "args", "fullscreen"}]}`. File bản cũ có trường `delay` vẫn đọc được, trường đó bị bỏ ở lần lưu sau. File này là dữ liệu cá nhân nên đã nằm trong `.gitignore`. Lúc đăng nhập, Windows chạy `CoconutAutoLaunch.exe --startup`: chỉ phần lõi chạy, không mở cửa sổ. Kết quả mở từng app được ghi vào `coconut-auto-launch.log`, cùng thư mục với `config.json`.
 
 Bật khởi động từ bản exe và từ mã nguồn sẽ ghi hai lệnh khác nhau vào Run. Đổi chỗ file exe, đổi thư mục dự án hoặc chuyển giữa hai cách chạy thì công tắc sẽ hiện Tắt. Bật lại là entry được ghi đúng lệnh mới.
 
@@ -43,9 +45,11 @@ Bật khởi động từ bản exe và từ mã nguồn sẽ ghi hai lệnh kh�
 | Đường dẫn | Vai trò |
 |---|---|
 | `app.py` | Điểm vào: không tham số thì mở cửa sổ, `--startup` thì mở danh sách app |
-| `core.py` | Lõi: đọc/ghi `config.json`, mở app, đăng ký khởi động (mọi thao tác registry nằm ở đây) |
+| `core.py` | Lõi: đọc/ghi `config.json`, mở app và phóng to cửa sổ, đăng ký khởi động (mọi thao tác registry nằm ở đây) |
+| `catalog.py` | Tìm app cho hộp Thêm ứng dụng: Start Menu, app Store, hồ sơ Chrome |
 | `ui.py` | Cửa sổ pywebview và các hàm giao diện React gọi sang |
-| `frontend/` | Giao diện React + Vite, build ra `frontend/dist/` |
+| `frontend/` | Giao diện React + Vite, build ra `frontend/dist/`. Logo ở `frontend/src/logo.png` |
+| `logo.ico` | Icon của exe và cửa sổ, tạo từ `frontend/src/logo.png` |
 | `build.bat` | Build giao diện và đóng gói `CoconutAutoLaunch.exe` |
 | `test_core.py` | Test cho lõi: `.venv\Scripts\python -m unittest test_core` |
 
