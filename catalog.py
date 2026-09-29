@@ -1,3 +1,4 @@
+import ctypes
 import json
 import logging
 import os
@@ -10,6 +11,8 @@ START_MENUS = [
     Path(os.environ["APPDATA"]) / "Microsoft/Windows/Start Menu/Programs",
     Path(os.environ["PROGRAMDATA"]) / "Microsoft/Windows/Start Menu/Programs",
 ]
+CSIDL_DESKTOPDIRECTORY = 0x10
+CSIDL_COMMON_DESKTOPDIRECTORY = 0x19
 CHROME_STATE = Path(os.environ["LOCALAPPDATA"]) / "Google/Chrome/User Data/Local State"
 CHROME_EXES = [
     Path(os.environ[var]) / "Google/Chrome/Application/chrome.exe"
@@ -26,9 +29,10 @@ PACKAGED_APPS = (
 
 def list_apps() -> list[dict]:
     profiles = chrome_profiles()
-    links = [app for app in start_menu_links() if not (profiles and app["name"] == "Google Chrome")]
     unique = {}
-    for app in [*profiles, *links, *packaged_apps()]:
+    for app in [*profiles, *start_menu_links(), *packaged_apps(), *desktop_items()]:
+        if profiles and app["name"] == "Google Chrome":
+            continue
         unique.setdefault((app["name"].casefold(), app["args"]), app)
     return sorted(unique.values(), key=lambda app: app["name"].casefold())
 
@@ -60,6 +64,27 @@ def start_menu_links() -> list[dict]:
         for link in folder.rglob("*.lnk")
         if "uninstall" not in link.stem.lower()
     ]
+
+
+def desktop_items() -> list[dict]:
+    # App portable như UniKey không có shortcut trong Start Menu, chỉ nằm trên Desktop.
+    folders = [_shell_folder(csidl) for csidl in (CSIDL_DESKTOPDIRECTORY, CSIDL_COMMON_DESKTOPDIRECTORY)]
+    return [
+        {"name": item.stem, "path": str(item), "args": "", "detail": ""}
+        for folder in folders
+        if folder
+        for item in folder.glob("*")
+        if item.suffix.lower() in (".lnk", ".exe") and "install" not in item.stem.lower()
+    ]
+
+
+def _shell_folder(csidl: int) -> Path | None:
+    # Desktop có thể bị OneDrive chuyển chỗ, nên hỏi Windows thay vì ghép USERPROFILE\Desktop.
+    buffer = ctypes.create_unicode_buffer(260)
+    if ctypes.windll.shell32.SHGetFolderPathW(None, csidl, None, 0, buffer):
+        log.warning("cannot find shell folder %#x", csidl)
+        return None
+    return Path(buffer.value)
 
 
 def packaged_apps() -> list[dict]:
